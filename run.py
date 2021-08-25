@@ -43,15 +43,20 @@ if __name__ == "__main__":
 
         deeplab_model = utils.load_model()
 
-        cap = cv2.VideoCapture("mov/test.mov")
+        cap = cv2.VideoCapture(0)
 
         while(True):
             _, image = cap.read()
-            image = cv2.resize(image, (640, 480))
             bbox = get_bbox(yolo_model, image, device, args.obj_thold, args.nms_thold, args.model_res)
-            osc_msg = make_osc(bbox)
-            client.send_message("/index", len(bbox))
-            client.send(osc_msg)
+            if len(bbox) != 0:
+                osc_msg = make_osc(bbox)
+                client.send_message("/index", len(bbox))
+                client.send(osc_msg)
+            else:
+                zero = [[0, 0, 0, 0]]
+                osc_msg = make_osc(zero)
+                client.send_message("/index", len(bbox))
+                client.send(osc_msg)
             
             mask = np.zeros_like(image)
             for box in bbox:
